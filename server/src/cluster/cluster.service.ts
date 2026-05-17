@@ -1,7 +1,12 @@
+import { EventEmitter } from "events";
 import * as k8s from "@kubernetes/client-node";
+import { ResourceEvent, ResourceType } from "./cluster.types.js";
+import { WATCHED_RESOURCES } from "./cluster.config.js";
+import { normalizeResource } from "./cluster.normalizer.js";
 
-export class ClusterService {
+export class ClusterService extends EventEmitter {
   private kc: k8s.KubeConfig | null = null;
+  private watches: AbortController[] = [];
   private connected = false;
 
   connectFromFile(kubeconfigContent: string): void {
@@ -18,11 +23,15 @@ export class ClusterService {
     }
 
     this.connected = true;
+    this.emit("connection.status", { status: "connected" });
+    this.startWatches("default");
   }
 
   disconnect(): void {
+    this.stopWatches();
     this.kc = null;
     this.connected = false;
+    this.emit("connection.status", { status: "disconnected" });
   }
 
   isConnected(): boolean {
@@ -39,5 +48,68 @@ export class ClusterService {
       name: context ?? "unknown",
       server: cluster?.server ?? "unknown",
     };
+  }
+
+  private startWatches(namespace: string): void {
+    if (!this.kc) return;
+
+    for (const { path, resourceType } of WATCHED_RESOURCES) {
+      const watchPath = this.buildWatchPath(path, namespace);
+      this.watchResource(watchPath, resourceType);
+    }
+  }
+
+  private stopWatches(): void {
+    this.watches.forEach((w) => w.abort());
+    this.watches = [];
+  }
+
+  private buildWatchPath(basePath: string, namespace: string): string {
+    if (basePath.includes("nodes")) return basePath;
+    return basePath.replace("/api/v1/", `/api/v1/namespaces/${namespace}/`);
+  }
+
+  private watchResource(path: string, resourceType: ResourceType): void {
+    if (!this.kc) return;
+
+    const watch = new k8s.Watch(this.kc);
+
+    const startWatch = async () => {
+      const controller = await watch.watch(
+        path,
+        {},
+        (type, obj) => this.onEvent(type, obj, resourceType),
+        (error) => this.onWatchError(error, resourceType, startWatch),
+      );
+      this.watches.push(controller);
+    };
+
+    startWatch();
+  }
+
+  private onEvent(type: string, obj: any, resourceType: ResourceType): void {
+    if (!["ADDED", "MODIFIED", "DELETED"].includes(type)) return;
+
+    const event: ResourceEvent = {
+      type: type as ResourceEvent["type"],
+      resourceType,
+      resource: normalizeResource(resourceType, obj),
+    };
+
+    this.emit("resource.event", event);
+  }
+
+  private onWatchError(
+    error: Error,
+    resourceType: ResourceType,
+    startWatch: () => void,
+  ): void {
+    if (!this.connected) return;
+
+    this.emit("watch.error", { resourceType, error: error?.message });
+
+    setTimeout(() => {
+      if (this.connected) startWatch();
+    }, 5000);
   }
 }
