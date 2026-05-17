@@ -59,7 +59,9 @@ export async function clusterRoutes(fastify: FastifyInstance): Promise<void> {
     const { namespace } = request.body as { namespace: string };
 
     if (!namespace) {
-      return reply.code(400).send({ ok: false, error: "namespace is required" });
+      return reply
+        .code(400)
+        .send({ ok: false, error: "namespace is required" });
     }
 
     fastify.clusterService.switchNamespace(namespace);
@@ -75,5 +77,18 @@ export async function clusterRoutes(fastify: FastifyInstance): Promise<void> {
       clusterName: info?.name ?? null,
       server: info?.server ?? null,
     };
+  });
+
+  fastify.get("/snapshot", async (request, reply) => {
+    if (!fastify.clusterService.isConnected()) {
+      return reply.code(503).send({ error: "No cluster connected" });
+    }
+
+    try {
+      const snapshot = await fastify.clusterService.getSnapshot();
+      return { ok: true, data: snapshot };
+    } catch (err: any) {
+      reply.code(500).send({ error: err.message });
+    }
   });
 }

@@ -2,6 +2,8 @@ export enum ResourceType {
   Pod = "pod",
   Node = "node",
   Service = "service",
+  Deployment = "deployment",
+  ReplicaSet = "replicaset",
 }
 
 export interface K8sResource {
