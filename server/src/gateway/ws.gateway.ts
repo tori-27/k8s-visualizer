@@ -42,6 +42,10 @@ export class WsGateway {
       status: this.clusterService.isConnected() ? "connected" : "disconnected",
     });
 
+    if (this.clusterService.isConnected()) {
+      this.sendSnapshot(socket);
+    }
+
     socket.on("message", (raw: Buffer) => {
       this.handleMessage(socket, raw.toString());
     });
@@ -63,6 +67,18 @@ export class WsGateway {
       }
     } catch {
       // ignore malformed messages
+    }
+  }
+
+  private async sendSnapshot(socket: WebSocket): Promise<void> {
+    try {
+      const snapshot = await this.clusterService.getSnapshot();
+      this.sendToClient(socket, { type: "snapshot", data: snapshot });
+    } catch (err: any) {
+      this.sendToClient(socket, {
+        type: "error",
+        message: `Failed to get snapshot: ${err.message}`,
+      });
     }
   }
 

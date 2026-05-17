@@ -1,6 +1,6 @@
 import { EventEmitter } from "events";
 import * as k8s from "@kubernetes/client-node";
-import { ResourceEvent, ResourceType } from "./cluster.types.js";
+import { K8sResource, ResourceEvent, ResourceType } from "./cluster.types.js";
 import { WATCHED_RESOURCES } from "./cluster.config.js";
 import { normalizeResource } from "./cluster.normalizer.js";
 
@@ -47,6 +47,28 @@ export class ClusterService extends EventEmitter {
     return {
       name: context ?? "unknown",
       server: cluster?.server ?? "unknown",
+    };
+  }
+
+  async getSnapshot(): Promise<{
+    pods: K8sResource[];
+    nodes: K8sResource[];
+    services: K8sResource[];
+  }> {
+    if (!this.kc) throw new Error("Not connected");
+
+    const coreApi = this.kc.makeApiClient(k8s.CoreV1Api);
+
+    const [podsRes, nodesRes, servicesRes] = await Promise.all([
+      coreApi.listNamespacedPod({ namespace: "default" }),
+      coreApi.listNode(),
+      coreApi.listNamespacedService({ namespace: "default" }),
+    ]);
+
+    return {
+      pods: podsRes.items.map((obj) => normalizeResource(ResourceType.Pod, obj)),
+      nodes: nodesRes.items.map((obj) => normalizeResource(ResourceType.Node, obj)),
+      services: servicesRes.items.map((obj) => normalizeResource(ResourceType.Service, obj)),
     };
   }
 
