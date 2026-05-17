@@ -8,6 +8,7 @@ export class ClusterService extends EventEmitter {
   private kc: k8s.KubeConfig | null = null;
   private watches: AbortController[] = [];
   private connected = false;
+  private currentNamespace: string = "default";
 
   connectFromFile(kubeconfigContent: string): void {
     if (this.connected) {
@@ -50,7 +51,7 @@ export class ClusterService extends EventEmitter {
     };
   }
 
-  async getSnapshot(): Promise<{
+  async getSnapshot(namespace: string = this.currentNamespace): Promise<{
     pods: K8sResource[];
     nodes: K8sResource[];
     services: K8sResource[];
@@ -60,9 +61,13 @@ export class ClusterService extends EventEmitter {
     const coreApi = this.kc.makeApiClient(k8s.CoreV1Api);
 
     const [podsRes, nodesRes, servicesRes] = await Promise.all([
-      coreApi.listNamespacedPod({ namespace: "default" }),
+      namespace === "all"
+        ? coreApi.listPodForAllNamespaces()
+        : coreApi.listNamespacedPod({ namespace }),
       coreApi.listNode(),
-      coreApi.listNamespacedService({ namespace: "default" }),
+      namespace === "all"
+        ? coreApi.listServiceForAllNamespaces()
+        : coreApi.listNamespacedService({ namespace }),
     ]);
 
     return {
@@ -70,6 +75,26 @@ export class ClusterService extends EventEmitter {
       nodes: nodesRes.items.map((obj) => normalizeResource(ResourceType.Node, obj)),
       services: servicesRes.items.map((obj) => normalizeResource(ResourceType.Service, obj)),
     };
+  }
+
+  async getNamespaces(): Promise<string[]> {
+    if (!this.kc) throw new Error("Not connected");
+
+    const coreApi = this.kc.makeApiClient(k8s.CoreV1Api);
+    const res = await coreApi.listNamespace();
+
+    return res.items.map((ns) => ns.metadata?.name ?? "").filter(Boolean);
+  }
+
+  switchNamespace(namespace: string): void {
+    this.currentNamespace = namespace;
+    this.stopWatches();
+    this.startWatches(namespace);
+    this.emit("namespace.changed", { namespace });
+  }
+
+  getCurrentNamespace(): string {
+    return this.currentNamespace;
   }
 
   private startWatches(namespace: string): void {

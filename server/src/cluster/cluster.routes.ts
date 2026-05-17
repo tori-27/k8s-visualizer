@@ -42,6 +42,30 @@ export async function clusterRoutes(fastify: FastifyInstance): Promise<void> {
     return { ok: true };
   });
 
+  fastify.get("/namespaces", async (_request, reply) => {
+    if (!fastify.clusterService.isConnected()) {
+      return reply.code(503).send({ error: "No cluster connected" });
+    }
+
+    const namespaces = await fastify.clusterService.getNamespaces();
+    return { ok: true, data: namespaces };
+  });
+
+  fastify.post("/namespace", async (request, reply) => {
+    if (!fastify.clusterService.isConnected()) {
+      return reply.code(503).send({ error: "No cluster connected" });
+    }
+
+    const { namespace } = request.body as { namespace: string };
+
+    if (!namespace) {
+      return reply.code(400).send({ ok: false, error: "namespace is required" });
+    }
+
+    fastify.clusterService.switchNamespace(namespace);
+    return { ok: true, namespace };
+  });
+
   fastify.get("/status", async (_request, _reply) => {
     const connected = fastify.clusterService.isConnected();
     const info = fastify.clusterService.getClusterInfo();

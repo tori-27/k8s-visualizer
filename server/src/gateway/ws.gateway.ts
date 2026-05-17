@@ -32,6 +32,12 @@ export class WsGateway {
         this.broadcast({ type: "watch.error", ...data });
       },
     );
+
+    this.clusterService.on("namespace.changed", () => {
+      for (const client of this.clients) {
+        this.sendSnapshot(client);
+      }
+    });
   }
 
   handleConnection(socket: WebSocket): void {
@@ -72,7 +78,8 @@ export class WsGateway {
 
   private async sendSnapshot(socket: WebSocket): Promise<void> {
     try {
-      const snapshot = await this.clusterService.getSnapshot();
+      const namespace = this.clusterService.getCurrentNamespace();
+      const snapshot = await this.clusterService.getSnapshot(namespace);
       this.sendToClient(socket, { type: "snapshot", data: snapshot });
     } catch (err: any) {
       this.sendToClient(socket, {
