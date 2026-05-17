@@ -5,6 +5,7 @@ import websocket from "@fastify/websocket";
 import { ClusterService } from "./cluster/cluster.service.js";
 import { clusterRoutes } from "./cluster/cluster.routes.js";
 import { WsGateway } from "./gateway/ws.gateway.js";
+import { AppError, AppErrorCode } from "./errors.js";
 
 const fastify = Fastify({ logger: true });
 
@@ -19,11 +20,30 @@ const wsGateway = new WsGateway(clusterService);
 
 fastify.decorate("clusterService", clusterService);
 
-fastify.setErrorHandler<FastifyError>((error, _request, reply) => {
+fastify.setErrorHandler((error, request, reply) => {
+  if (error instanceof AppError) {
+    return reply.code(error.statusCode).send({
+      ok: false,
+      code: error.code,
+      error: error.message,
+    });
+  }
+
+  // K8s API errors
+  if (error instanceof Error && error.message.includes("ECONNREFUSED")) {
+    return reply.code(503).send({
+      ok: false,
+      code: AppErrorCode.CLUSTER_NOT_CONNECTED,
+      error: "Cannot reach K8s API server",
+    });
+  }
+
+  // unknown error
   fastify.log.error(error);
-  reply.code(error.statusCode ?? 500).send({
+  reply.code(500).send({
     ok: false,
-    error: error.message,
+    code: "INTERNAL_ERROR",
+    error: "Something went wrong",
   });
 });
 

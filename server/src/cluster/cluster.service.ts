@@ -3,6 +3,7 @@ import * as k8s from "@kubernetes/client-node";
 import { K8sResource, ResourceEvent, ResourceType } from "./cluster.types.js";
 import { WATCHED_RESOURCES } from "./cluster.config.js";
 import { normalizeResource } from "./cluster.normalizer.js";
+import { AppError, AppErrorCode } from "../errors.js";
 
 export class ClusterService extends EventEmitter {
   private kc: k8s.KubeConfig | null = null;
@@ -14,9 +15,16 @@ export class ClusterService extends EventEmitter {
     if (this.connected) {
       this.disconnect();
     }
-
-    this.kc = new k8s.KubeConfig();
-    this.kc.loadFromString(kubeconfigContent);
+    try {
+      this.kc = new k8s.KubeConfig();
+      this.kc.loadFromString(kubeconfigContent);
+    } catch {
+      throw new AppError(
+        AppErrorCode.INVALID_KUBECONFIG,
+        "Invalid kubeconfig format",
+        400,
+      );
+    }
 
     const cluster = this.kc.getCurrentCluster();
     if (!cluster?.server) {
@@ -71,14 +79,26 @@ export class ClusterService extends EventEmitter {
     ]);
 
     return {
-      pods: podsRes.items.map((obj) => normalizeResource(ResourceType.Pod, obj)),
-      nodes: nodesRes.items.map((obj) => normalizeResource(ResourceType.Node, obj)),
-      services: servicesRes.items.map((obj) => normalizeResource(ResourceType.Service, obj)),
+      pods: podsRes.items.map((obj) =>
+        normalizeResource(ResourceType.Pod, obj),
+      ),
+      nodes: nodesRes.items.map((obj) =>
+        normalizeResource(ResourceType.Node, obj),
+      ),
+      services: servicesRes.items.map((obj) =>
+        normalizeResource(ResourceType.Service, obj),
+      ),
     };
   }
 
   async getNamespaces(): Promise<string[]> {
-    if (!this.kc) throw new Error("Not connected");
+    if (!this.kc) {
+      throw new AppError(
+        AppErrorCode.CLUSTER_NOT_CONNECTED,
+        "No cluster connected",
+        503,
+      );
+    }
 
     const coreApi = this.kc.makeApiClient(k8s.CoreV1Api);
     const res = await coreApi.listNamespace();
