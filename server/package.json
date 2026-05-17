@@ -2,21 +2,24 @@
   "name": "server",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc -p tsconfig.json",
-    "start": "node index.js"
+    "build": "tsc",
+    "start": "npm run build && node dist/app.js",
+    "dev": "npm run build && concurrently -k -p \"[{name}]\" -n \"TypeScript,App\" -c \"yellow.bold,cyan.bold\" \"tsc -w\" \"node --watch dist/app.js\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
+    "@fastify/cors": "^11.0.0",
+    "@fastify/multipart": "^10.0.0",
+    "@kubernetes/client-node": "^1.4.0",
     "fastify": "^5.8.5"
   },
   "devDependencies": {
-    "@types/node": "^25.8.0",
-    "typescript": "^6.0.3"
+    "@types/node": "^25.0.0",
+    "concurrently": "^9.0.0",
+    "typescript": "~5.9.0"
   }
 }
