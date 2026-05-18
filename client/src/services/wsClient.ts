@@ -30,6 +30,7 @@ class WsClient {
     this.ws = new WebSocket(this.url);
 
     this.ws.onopen = () => {
+      console.log("[WS] Connected");
       this.startPing();
     };
 
@@ -43,6 +44,7 @@ class WsClient {
     };
 
     this.ws.onclose = () => {
+      console.log("[WS] Disconnected");
       this.handlers.forEach((h) =>
         h({ type: "connection.status", status: "disconnected" }),
       );
@@ -56,6 +58,7 @@ class WsClient {
 
   private scheduleReconnect(): void {
     if (!this.shouldReconnect) return;
+    console.log("[WS] Reconnecting in 3s...");
     this.reconnectTimer = setTimeout(() => this.createConnection(), 3000);
   }
 
