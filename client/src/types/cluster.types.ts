@@ -27,9 +27,21 @@ export interface ClusterSnapshot {
 
 export type WsMessage =
   | { type: "snapshot"; data: ClusterSnapshot }
-  | { type: "resource.added"; resourceType: ResourceType; resource: K8sResource }
-  | { type: "resource.modified"; resourceType: ResourceType; resource: K8sResource }
-  | { type: "resource.deleted"; resourceType: ResourceType; resource: K8sResource }
+  | {
+      type: "resource.added";
+      resourceType: ResourceType;
+      resource: K8sResource;
+    }
+  | {
+      type: "resource.modified";
+      resourceType: ResourceType;
+      resource: K8sResource;
+    }
+  | {
+      type: "resource.deleted";
+      resourceType: ResourceType;
+      resource: K8sResource;
+    }
   | { type: "connection.status"; status: "connected" | "disconnected" }
   | { type: "namespace.changed"; namespace: string }
   | { type: "watch.error"; resourceType: string; error: string }

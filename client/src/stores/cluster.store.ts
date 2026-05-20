@@ -1,5 +1,6 @@
 import { makeAutoObservable } from "mobx";
 import { wsClient } from "../services/wsClient";
+
 import {
   ResourceType,
   type ClusterSnapshot,
@@ -24,6 +25,7 @@ class ClusterStore {
     this.initWsHandlers();
   }
 
+  // --- WebSocket handlers ---
   private initWsHandlers(): void {
     wsClient.onMessage((message) => {
       switch (message.type) {
@@ -44,12 +46,11 @@ class ClusterStore {
     });
   }
 
+  // --- Actions ---
   private applySnapshot(snapshot: ClusterSnapshot): void {
     this.pods.clear();
     this.nodes.clear();
     this.services.clear();
-    this.deployments.clear();
-    this.replicasets.clear();
 
     snapshot.pods.forEach((p) => this.pods.set(p.id, p));
     snapshot.nodes.forEach((n) => this.nodes.set(n.id, n));
@@ -78,6 +79,7 @@ class ClusterStore {
         return this.deployments;
       case ResourceType.ReplicaSet:
         return this.replicasets;
+
       default:
         throw new Error(`Unknown resource type: ${type}`);
     }

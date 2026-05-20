@@ -13,13 +13,13 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import { observer } from 'mobx-react-lite';
 import { autorun } from 'mobx';
-import { clusterStore } from '../../stores/cluster.store';
 import type { K8sResource } from '../../types/cluster.types';
 import type { NodeData } from './nodes/nodeTypes';
 import K8sNodeCard from './nodes/K8sNodeCard';
 import PodCard from './nodes/PodCard';
 import ServiceCard from './nodes/ServiceCard';
 import styles from './ClusterGraph.module.css';
+import { clusterStore } from '../../stores/cluster.store';
 
 const nodeTypes: NodeTypes = {
   k8sNode: K8sNodeCard,

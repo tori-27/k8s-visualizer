@@ -58,8 +58,11 @@ class WsClient {
 
   private scheduleReconnect(): void {
     if (!this.shouldReconnect) return;
+
     console.log("[WS] Reconnecting in 3s...");
-    this.reconnectTimer = setTimeout(() => this.createConnection(), 3000);
+    this.reconnectTimer = setTimeout(() => {
+      this.createConnection();
+    }, 3000);
   }
 
   private startPing(): void {

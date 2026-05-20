@@ -1,8 +1,8 @@
 import { observer } from 'mobx-react-lite';
-import { clusterStore } from '../../stores/cluster.store';
 import { ResourceType } from '../../types/cluster.types';
 import { getStatusColor } from '../Graph/nodes/nodeUtils';
 import styles from './ResourceSidebar.module.css';
+import { clusterStore } from '../../stores/cluster.store';
 
 type RawPod = {
   spec?: { nodeName?: string };

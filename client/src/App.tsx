@@ -1,9 +1,9 @@
 import { observer } from 'mobx-react-lite';
+import ConnectionPanel from './components/ConnectionPanel/ConnectionPanel';
 import ClusterGraph from './components/Graph/ClusterGraph';
 import ResourceSidebar from './components/Sidebar/ResourceSidebar';
-import { clusterStore } from './stores/cluster.store';
-import ConnectionPanel from './components/ConnectionPanel/ConnectionPanel';
 import styles from './App.module.css';
+import { clusterStore } from './stores/cluster.store';
 
 const App = observer(() => {
   const connected = clusterStore.connectionStatus === 'connected';
