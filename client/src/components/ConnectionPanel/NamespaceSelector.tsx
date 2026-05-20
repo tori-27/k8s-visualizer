@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react-lite';
-import { clusterStore } from '../../stores/cluster.store';
 import styles from './NamespaceSelector.module.css';
+import { clusterStore } from '../../stores/cluster.store';
 
 const NamespaceSelector = observer(() => {
   if (clusterStore.connectionStatus !== 'connected') return null;

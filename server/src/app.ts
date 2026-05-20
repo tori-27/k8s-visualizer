@@ -10,7 +10,7 @@ import { AppError, AppErrorCode } from "./errors.js";
 const fastify = Fastify({ logger: true });
 
 await fastify.register(cors, {
-  origin: ["http://localhost:5173", "http://localhost:3001"],
+  origin: ["http://localhost:5174", "http://localhost:3001"],
 });
 await fastify.register(multipart);
 await fastify.register(websocket);
