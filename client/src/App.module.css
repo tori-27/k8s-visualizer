@@ -46,3 +46,12 @@
   max-width: 280px;
   line-height: 1.6;
 }
+
+.providerInfo {
+  font-size: 10px;
+  color: #4a5568;
+  padding: 10px 16px;
+  border-top: 1px solid #1e2235;
+  flex-shrink: 0;
+  margin-top: auto;
+}

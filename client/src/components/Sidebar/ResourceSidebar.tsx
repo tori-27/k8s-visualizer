@@ -1,8 +1,10 @@
 import { observer } from 'mobx-react-lite';
+import { useEffect } from 'react';
 import { ResourceType } from '../../types/cluster.types';
 import { getStatusColor } from '../Graph/nodes/nodeUtils';
 import styles from './ResourceSidebar.module.css';
 import { clusterStore } from '../../stores/cluster.store';
+import { aiStore } from '../../stores/AiStore';
 
 type RawPod = {
   spec?: { nodeName?: string };
@@ -120,6 +122,11 @@ function ServiceDetails({ raw }: { raw: RawService }) {
 
 const ResourceSidebar = observer(() => {
   const resource = clusterStore.selectedResource;
+
+  useEffect(() => {
+    aiStore.clearExplanation();
+  }, [resource?.id]);
+
   if (!resource) return null;
 
   const color = getStatusColor(resource.status);
@@ -177,6 +184,34 @@ const ResourceSidebar = observer(() => {
         {detectedType === ResourceType.Service && (
           <ServiceDetails raw={resource.raw as RawService} />
         )}
+
+        <div className={styles.section}>
+          <div className={styles.sectionTitle}>AI</div>
+          <div className={styles.aiSection}>
+            <button
+              className={styles.explainBtn}
+              onClick={() => aiStore.explainResource(resource)}
+              disabled={aiStore.explainLoading}
+            >
+              {aiStore.explainLoading ? (
+                <span className={styles.explainSpinner} />
+              ) : (
+                <span className={styles.explainIcon}>✦</span>
+              )}
+              {aiStore.explainLoading ? 'Explaining…' : 'Explain with AI'}
+            </button>
+
+            {aiStore.error && (
+              <div className={styles.aiError}>{aiStore.error}</div>
+            )}
+
+            {aiStore.explanation && (
+              <div className={styles.explanationBox}>
+                <p className={styles.explanationText}>{aiStore.explanation}</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </aside>
   );

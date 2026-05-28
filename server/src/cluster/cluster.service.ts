@@ -1,6 +1,10 @@
 import { EventEmitter } from "events";
 import * as k8s from "@kubernetes/client-node";
-import { K8sResource, ResourceEvent, ResourceType } from "./cluster.types.js";
+import {
+  ClusterSnapshot,
+  ResourceEvent,
+  ResourceType,
+} from "./cluster.types.js";
 import { WATCHED_RESOURCES } from "./cluster.config.js";
 import { normalizeResource } from "./cluster.normalizer.js";
 import { AppError, AppErrorCode } from "../errors.js";
@@ -59,11 +63,9 @@ export class ClusterService extends EventEmitter {
     };
   }
 
-  async getSnapshot(namespace: string = this.currentNamespace): Promise<{
-    pods: K8sResource[];
-    nodes: K8sResource[];
-    services: K8sResource[];
-  }> {
+  async getSnapshot(
+    namespace: string = this.currentNamespace,
+  ): Promise<ClusterSnapshot> {
     if (!this.kc) throw new Error("Not connected");
 
     const coreApi = this.kc.makeApiClient(k8s.CoreV1Api);
@@ -87,6 +89,12 @@ export class ClusterService extends EventEmitter {
       ),
       services: servicesRes.items.map((obj) =>
         normalizeResource(ResourceType.Service, obj),
+      ),
+      deployments: servicesRes.items.map((obj) =>
+        normalizeResource(ResourceType.Deployment, obj),
+      ),
+      replicasents: servicesRes.items.map((obj) =>
+        normalizeResource(ResourceType.ReplicaSet, obj),
       ),
     };
   }
@@ -159,7 +167,6 @@ export class ClusterService extends EventEmitter {
 
     const event: ResourceEvent = {
       type: type as ResourceEvent["type"],
-      resourceType,
       resource: normalizeResource(resourceType, obj),
     };
 

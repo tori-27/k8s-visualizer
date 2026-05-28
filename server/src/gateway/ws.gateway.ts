@@ -17,7 +17,6 @@ export class WsGateway {
     this.clusterService.on("resource.event", (event: ResourceEvent) => {
       this.broadcast({
         type: `resource.${event.type.toLowerCase()}`,
-        resourceType: event.resourceType,
         resource: event.resource,
       });
     });

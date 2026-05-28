@@ -6,11 +6,17 @@ import { ClusterService } from "./cluster/cluster.service.js";
 import { clusterRoutes } from "./cluster/cluster.routes.js";
 import { WsGateway } from "./gateway/ws.gateway.js";
 import { AppError, AppErrorCode } from "./errors.js";
+import { AiService } from "./ai/ai.service.js";
+import { aiRoutes } from "./ai/ai.routes.js";
 
 const fastify = Fastify({ logger: true });
 
 await fastify.register(cors, {
-  origin: ["http://localhost:5174", "http://localhost:3001"],
+  origin: [
+    "http://localhost:5173",
+    "http://localhost:3001",
+    "http://localhost:5174",
+  ],
 });
 await fastify.register(multipart);
 await fastify.register(websocket);
@@ -18,6 +24,9 @@ await fastify.register(websocket);
 const clusterService = new ClusterService();
 const wsGateway = new WsGateway(clusterService);
 
+const aiService = new AiService();
+
+fastify.decorate("aiService", aiService);
 fastify.decorate("clusterService", clusterService);
 
 fastify.setErrorHandler((error, request, reply) => {
@@ -48,6 +57,7 @@ fastify.setErrorHandler((error, request, reply) => {
 });
 
 await fastify.register(clusterRoutes, { prefix: "/api/cluster" });
+await fastify.register(aiRoutes, { prefix: "/api/ai" });
 
 fastify.get("/ws", { websocket: true }, (socket) => {
   wsGateway.handleConnection(socket);
