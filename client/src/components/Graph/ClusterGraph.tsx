@@ -11,6 +11,7 @@ import ReactFlow, {
   type NodeTypes,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import '../../styles/reactflow.css';
 import { observer } from 'mobx-react-lite';
 import { autorun } from 'mobx';
 import type { K8sResource } from '../../types/cluster.types';
@@ -18,7 +19,6 @@ import type { NodeData } from './nodes/nodeTypes';
 import K8sNodeCard from './nodes/K8sNodeCard';
 import PodCard from './nodes/PodCard';
 import ServiceCard from './nodes/ServiceCard';
-import styles from './ClusterGraph.module.css';
 import { clusterStore } from '../../stores/cluster.store';
 
 const nodeTypes: NodeTypes = {
@@ -148,7 +148,7 @@ const ClusterGraph = observer(() => {
   }, []);
 
   return (
-    <div className={styles.wrapper}>
+    <div className="rf-wrapper w-full h-full">
       <ReactFlow
         nodes={nodes}
         edges={edges}

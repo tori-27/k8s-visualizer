@@ -5,7 +5,6 @@ import ClusterGraph from './components/Graph/ClusterGraph';
 import ResourceSidebar from './components/Sidebar/ResourceSidebar';
 import AnalyzeButton from './components/AnalyzeButton/AnalyzeButton';
 import AnalysisModal from './components/AnalysisModal/AnalysisModal';
-import styles from './App.module.css';
 import { clusterStore } from './stores/cluster.store';
 import { aiStore } from './stores/AiStore';
 
@@ -17,23 +16,23 @@ const App = observer(() => {
   }, []);
 
   return (
-    <div className={styles.app}>
-      <aside className={styles.sidebar}>
+    <div className="flex h-screen w-screen overflow-hidden bg-bg">
+      <aside className="w-[280px] flex-shrink-0 bg-surface-deep border-r border-border flex flex-col overflow-hidden">
         <ConnectionPanel />
         {aiStore.providerInfo && (
-          <div className={styles.providerInfo}>
+          <div className="text-xxs text-text-muted px-4 py-[10px] border-t border-border flex-shrink-0 mt-auto">
             AI: {aiStore.providerInfo.provider} / {aiStore.providerInfo.model}
           </div>
         )}
       </aside>
 
-      <main className={styles.canvas}>
+      <main className="flex-1 overflow-hidden relative bg-bg">
         {connected ? (
           <ClusterGraph />
         ) : (
-          <div className={styles.emptyState}>
-            <div className={styles.emptyTitle}>No cluster connected</div>
-            <div className={styles.emptyDesc}>
+          <div className="flex flex-col items-center justify-center h-full gap-4 text-text-muted">
+            <div className="text-lg font-semibold text-text-secondary">No cluster connected</div>
+            <div className="text-13 text-text-muted text-center max-w-[280px] leading-relaxed">
               Upload a kubeconfig file from the sidebar to visualize your Kubernetes cluster.
             </div>
           </div>

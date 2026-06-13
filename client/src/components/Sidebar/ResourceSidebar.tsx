@@ -2,7 +2,6 @@ import { observer } from 'mobx-react-lite';
 import { useEffect } from 'react';
 import { ResourceType } from '../../types/cluster.types';
 import { getStatusColor } from '../Graph/nodes/nodeUtils';
-import styles from './ResourceSidebar.module.css';
 import { clusterStore } from '../../stores/cluster.store';
 import { aiStore } from '../../stores/AiStore';
 
@@ -41,25 +40,27 @@ function PodDetails({ raw }: { raw: RawPod }) {
   return (
     <>
       {nodeName && (
-        <div className={styles.section}>
-          <div className={styles.sectionTitle}>Placement</div>
-          <div className={styles.infoTable}>
-            <div className={styles.infoRow}>
-              <span className={styles.infoKey}>Node</span>
-              <span className={styles.infoVal}>{nodeName}</span>
+        <div className="flex flex-col gap-2">
+          <div className="section-title">Placement</div>
+          <div className="info-table">
+            <div className="info-row">
+              <span className="info-key">Node</span>
+              <span className="info-val">{nodeName}</span>
             </div>
           </div>
         </div>
       )}
       {containers.length > 0 && (
-        <div className={styles.section}>
-          <div className={styles.sectionTitle}>Containers ({containers.length})</div>
-          <div className={styles.infoTable}>
+        <div className="flex flex-col gap-2">
+          <div className="section-title">Containers ({containers.length})</div>
+          <div className="info-table">
             {containers.map((c) => (
-              <div key={c.name} className={styles.infoRow}>
-                <span className={styles.infoKey}>{c.name}</span>
-                <span className={styles.infoVal}>
-                  <span className={styles.imageTag}>{c.image}</span>
+              <div key={c.name} className="info-row">
+                <span className="info-key">{c.name}</span>
+                <span className="info-val">
+                  <span className="text-xxs text-text-secondary bg-bg rounded px-[6px] py-[2px] mt-[3px] block break-all border border-border">
+                    {c.image}
+                  </span>
                 </span>
               </div>
             ))}
@@ -75,19 +76,19 @@ function NodeDetails({ raw }: { raw: RawNode }) {
   if (!capacity) return null;
 
   return (
-    <div className={styles.section}>
-      <div className={styles.sectionTitle}>Capacity</div>
-      <div className={styles.infoTable}>
+    <div className="flex flex-col gap-2">
+      <div className="section-title">Capacity</div>
+      <div className="info-table">
         {capacity.cpu && (
-          <div className={styles.infoRow}>
-            <span className={styles.infoKey}>CPU</span>
-            <span className={styles.infoVal}>{capacity.cpu}</span>
+          <div className="info-row">
+            <span className="info-key">CPU</span>
+            <span className="info-val">{capacity.cpu}</span>
           </div>
         )}
         {capacity.memory && (
-          <div className={styles.infoRow}>
-            <span className={styles.infoKey}>Memory</span>
-            <span className={styles.infoVal}>{capacity.memory}</span>
+          <div className="info-row">
+            <span className="info-key">Memory</span>
+            <span className="info-val">{capacity.memory}</span>
           </div>
         )}
       </div>
@@ -100,19 +101,19 @@ function ServiceDetails({ raw }: { raw: RawService }) {
   if (!spec) return null;
 
   return (
-    <div className={styles.section}>
-      <div className={styles.sectionTitle}>Spec</div>
-      <div className={styles.infoTable}>
+    <div className="flex flex-col gap-2">
+      <div className="section-title">Spec</div>
+      <div className="info-table">
         {spec.type && (
-          <div className={styles.infoRow}>
-            <span className={styles.infoKey}>Type</span>
-            <span className={styles.infoVal}>{spec.type}</span>
+          <div className="info-row">
+            <span className="info-key">Type</span>
+            <span className="info-val">{spec.type}</span>
           </div>
         )}
         {spec.clusterIP && (
-          <div className={styles.infoRow}>
-            <span className={styles.infoKey}>ClusterIP</span>
-            <span className={styles.infoVal}>{spec.clusterIP}</span>
+          <div className="info-row">
+            <span className="info-key">ClusterIP</span>
+            <span className="info-val">{spec.clusterIP}</span>
           </div>
         )}
       </div>
@@ -134,85 +135,91 @@ const ResourceSidebar = observer(() => {
   const detectedType = guessType(resource.id);
 
   return (
-    <aside className={styles.sidebar}>
-      <div className={styles.header}>
-        <div className={styles.headerLeft}>
-          <span className={styles.resourceType}>{resourceTypeName(resource)}</span>
+    <aside className="w-[320px] flex-shrink-0 bg-surface-deep border-l border-border flex flex-col overflow-hidden">
+      {/* Header */}
+      <div className="panel-header">
+        <div className="flex items-center gap-2">
+          <span className="type-tag">{resourceTypeName(resource)}</span>
         </div>
-        <button className={styles.closeBtn} onClick={() => clusterStore.selectResource(null)}>
+        <button className="close-btn text-base" onClick={() => clusterStore.selectResource(null)}>
           ×
         </button>
       </div>
 
-      <div className={styles.body}>
+      {/* Body */}
+      <div className="px-4 py-4 overflow-y-auto flex-1 flex flex-col gap-4">
         <div>
-          <div className={styles.name}>{resource.name}</div>
+          <div className="text-sm font-bold text-text-primary break-all leading-snug">{resource.name}</div>
           {resource.namespace && (
-            <div className={styles.namespace}>{resource.namespace}</div>
+            <div className="text-11 text-text-muted">{resource.namespace}</div>
           )}
         </div>
 
-        <div className={styles.statusRow}>
+        {/* Status badge — background and border are dynamic, set via inline style */}
+        <div className="flex items-center gap-2">
           <span
-            className={styles.statusBadge}
+            className="inline-flex items-center gap-[5px] px-2 py-[3px] rounded-xl text-11 font-semibold"
             style={{ background: `${color}18`, border: `1px solid ${color}40` }}
           >
-            <span className={styles.statusDot} style={{ background: color }} />
+            <span className="w-[6px] h-[6px] rounded-full" style={{ background: color }} />
             <span style={{ color }}>{resource.status}</span>
           </span>
         </div>
 
+        {/* Labels */}
         {labelEntries.length > 0 && (
-          <div className={styles.section}>
-            <div className={styles.sectionTitle}>Labels</div>
-            <div className={styles.labels}>
+          <div className="flex flex-col gap-2">
+            <div className="section-title">Labels</div>
+            <div className="flex flex-wrap gap-[5px]">
               {labelEntries.map(([k, v]) => (
-                <span key={k} className={styles.labelTag}>
-                  <span className={styles.labelKey}>{k}</span>={v}
+                <span key={k} className="label-tag">
+                  <span className="text-primary">{k}</span>={v}
                 </span>
               ))}
             </div>
           </div>
         )}
 
-        {detectedType === ResourceType.Pod && (
-          <PodDetails raw={resource.raw as RawPod} />
-        )}
-        {detectedType === ResourceType.Node && (
-          <NodeDetails raw={resource.raw as RawNode} />
-        )}
-        {detectedType === ResourceType.Service && (
-          <ServiceDetails raw={resource.raw as RawService} />
-        )}
+        {detectedType === ResourceType.Pod && <PodDetails raw={resource.raw as RawPod} />}
+        {detectedType === ResourceType.Node && <NodeDetails raw={resource.raw as RawNode} />}
+        {detectedType === ResourceType.Service && <ServiceDetails raw={resource.raw as RawService} />}
 
-        <div className={styles.section}>
-          <div className={styles.sectionTitle}>AI</div>
-          <div className={styles.aiSection}>
+        {/* AI section */}
+        <div className="flex flex-col gap-2">
+          <div className="section-title">AI</div>
+          <div className="flex flex-col gap-[10px] pt-1">
             <button
-              className={styles.explainBtn}
+              className="flex items-center gap-[7px] px-3 py-[7px] bg-bg border border-border-strong rounded-md text-text-tertiary text-xs font-medium w-full text-left transition-colors duration-150 hover:not-disabled:bg-surface-deep hover:not-disabled:border-primary hover:not-disabled:text-primary disabled:opacity-55 disabled:cursor-not-allowed"
               onClick={() => aiStore.explainResource(resource)}
               disabled={aiStore.explainLoading}
             >
               {aiStore.explainLoading ? (
-                <span className={styles.explainSpinner} />
+                <span className="spinner-sm" />
               ) : (
-                <span className={styles.explainIcon}>✦</span>
+                <span className="text-13 leading-none text-primary">✦</span>
               )}
               {aiStore.explainLoading ? 'Explaining…' : 'Explain with AI'}
             </button>
 
             {aiStore.error && (
-              <div className={styles.aiError}>{aiStore.error}</div>
+              <div className="text-11 text-danger-light bg-danger-light/[0.06] border border-danger-light/20 rounded-[5px] px-[10px] py-[7px]">
+                {aiStore.error}
+              </div>
             )}
 
             {aiStore.explanation && (
-              <div className={styles.explanationBox}>
-                <p className={styles.explanationText}>{aiStore.explanation}</p>
+              <div className="bg-bg border border-border rounded-md px-3 py-[10px]">
+                <p className="font-mono text-11 text-text-body leading-[1.65] whitespace-pre-wrap break-words m-0">
+                  {aiStore.explanation}
+                </p>
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Provider info footer */}
+      {/* Rendered by App.tsx at the sidebar level — nothing needed here */}
     </aside>
   );
 });

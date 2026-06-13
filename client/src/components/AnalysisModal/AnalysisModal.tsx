@@ -1,24 +1,37 @@
 import { observer } from 'mobx-react-lite';
 import { aiStore } from '../../stores/AiStore';
-import styles from './AnalysisModal.module.css';
 
 const AnalysisModal = observer(() => {
   if (!aiStore.analysis) return null;
 
   return (
-    <div className={styles.backdrop} onClick={() => aiStore.clearAnalysis()}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.header}>
-          <span className={styles.title}>
-            <span className={styles.titleIcon}>✦</span>
+    <div
+      className="fixed inset-0 bg-black/60 backdrop-blur-[4px] z-100 flex items-center justify-center p-6"
+      onClick={() => aiStore.clearAnalysis()}
+    >
+      <div
+        className="bg-surface border border-border-strong rounded-xl w-full max-w-[600px] max-h-[80vh] flex flex-col shadow-modal"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 pt-4 pb-[14px] border-b border-border flex-shrink-0">
+          <span className="text-13 font-bold text-text-primary flex items-center gap-2">
+            <span className="text-15 text-primary">✦</span>
             Cluster Analysis
           </span>
-          <button className={styles.closeBtn} onClick={() => aiStore.clearAnalysis()}>
+          <button
+            className="w-[26px] h-[26px] flex items-center justify-center text-text-muted text-lg rounded-[5px] cursor-pointer transition-colors duration-150 hover:bg-bg hover:text-text-primary"
+            onClick={() => aiStore.clearAnalysis()}
+          >
             ×
           </button>
         </div>
-        <div className={styles.body}>
-          <p className={styles.text}>{aiStore.analysis}</p>
+
+        {/* Body */}
+        <div className="px-5 py-5 overflow-y-auto flex-1">
+          <p className="font-mono text-xs text-text-body leading-[1.7] whitespace-pre-wrap break-words">
+            {aiStore.analysis}
+          </p>
         </div>
       </div>
     </div>

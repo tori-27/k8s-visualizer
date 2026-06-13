@@ -1,49 +1,247 @@
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+@import "tailwindcss";
+
+/* ── Keyframes ──────────────────────────────────────────────── */
+@keyframes spinFast {
+  to { transform: rotate(360deg); }
 }
 
-html, body, #root {
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
+/* ── Design tokens ──────────────────────────────────────────── */
+@theme {
+  /* Base backgrounds */
+  --color-bg:              #0f1117;
+  --color-surface-deep:    #13161f;
+  --color-surface:         #1a1d27;
+  --color-surface-hover:   #212537;
+  --color-surface-ctrl:    #232638;
+
+  /* Borders */
+  --color-border:          #1e2235;
+  --color-border-strong:   #2a2d3e;
+  --color-border-node:     #3a4060;
+
+  /* Brand */
+  --color-primary:         #4f9cf9;
+  --color-primary-hover:   #6aadff;
+
+  /* Semantic status */
+  --color-success:         #22c55e;
+  --color-warning:         #eab308;
+  --color-danger:          #ef4444;
+  --color-danger-light:    #fc8181;
+
+  /* Text hierarchy */
+  --color-text-primary:    #e2e8f0;
+  --color-text-secondary:  #718096;
+  --color-text-tertiary:   #94a3b8;
+  --color-text-body:       #a0aec0;
+  --color-text-muted:      #4a5568;
+  --color-text-unknown:    #6b7280;
+
+  /* Font sizes (generate text-* utilities) */
+  --font-size-2xs:  9px;
+  --font-size-xxs:  10px;
+  --font-size-11:   11px;
+  --font-size-13:   13px;
+  --font-size-15:   15px;
+
+  /* Letter spacing (generate tracking-* utilities) */
+  --tracking-px-tight:  0.3px;
+  --tracking-px-normal: 0.4px;
+  --tracking-px-wide:   0.5px;
+  --tracking-px-wider:  0.8px;
+
+  /* Shadows (generate shadow-* utilities) */
+  --shadow-node:      0 4px 16px rgba(0,0,0,0.4);
+  --shadow-card:      0 2px 8px rgba(0,0,0,0.3);
+  --shadow-modal:     0 24px 60px rgba(0,0,0,0.5);
+  --shadow-dot-glow:  0 0 6px rgba(34,197,94,0.5);
+
+  /* Z-index */
+  --z-index-100: 100;
+
+  /* Animations (generate animate-* utilities) */
+  --animate-spin-fast: spinFast 0.7s linear infinite;
 }
 
-body {
-  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace, system-ui, sans-serif;
-  background: #0f1117;
-  color: #e2e8f0;
-  font-size: 13px;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
+/* ── Global resets ─────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html, body, #root {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace, system-ui, sans-serif;
+    background: var(--color-bg);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-13);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    background: none;
+  }
+
+  input, select {
+    font-family: inherit;
+  }
+
+  /* Custom scrollbar — no Tailwind utility equivalent */
+  ::-webkit-scrollbar       { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--color-bg); }
+  ::-webkit-scrollbar-thumb { background: var(--color-border-strong); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3a3d4e; }
 }
 
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
+/* ── Shared component abstractions ─────────────────────────── */
+/*
+ * Note: @apply inside @layer components cannot resolve theme-derived utilities
+ * (e.g. text-xxs, text-11) in Tailwind v4. Use direct CSS var() references or
+ * arbitrary values instead.
+ */
+@layer components {
 
-::-webkit-scrollbar-track {
-  background: #0f1117;
-}
+  /* Uppercase resource/type badge */
+  .type-tag {
+    font-size: var(--font-size-2xs);
+    font-weight: 800;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    background: var(--color-bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+    letter-spacing: var(--tracking-px-wider);
+    flex-shrink: 0;
+  }
 
-::-webkit-scrollbar-thumb {
-  background: #2a2d3e;
-  border-radius: 3px;
-}
+  /* 7×7 status circle — background-color applied via inline style */
+  .status-dot {
+    @apply w-[7px] h-[7px] rounded-full shrink-0;
+  }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #3a3d4e;
-}
+  /* Node card header row */
+  .node-header {
+    @apply flex items-center gap-[6px] mb-[6px];
+  }
 
-button {
-  font-family: inherit;
-  cursor: pointer;
-  border: none;
-  background: none;
-}
+  /* Node card resource name */
+  .node-name {
+    @apply text-xs font-bold truncate;
+    color: var(--color-text-primary);
+    margin-bottom: 3px;
+  }
 
-input, select {
-  font-family: inherit;
+  /* Node card meta section (border-top block) */
+  .node-meta {
+    @apply flex flex-col;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--color-border);
+    gap: 3px;
+  }
+
+  /* Node meta key/value row */
+  .node-meta-row {
+    @apply flex justify-between items-center;
+    font-size: var(--font-size-xxs);
+  }
+
+  /* Uppercase section label inside sidebars */
+  .section-title {
+    font-size: var(--font-size-xxs);
+    font-weight: 800;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-px-wider);
+  }
+
+  /* Bordered info table */
+  .info-table {
+    @apply flex flex-col overflow-hidden rounded-md;
+    border: 1px solid var(--color-border);
+  }
+
+  .info-row {
+    @apply flex items-start gap-2;
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--color-border);
+
+    &:last-child { border-bottom: none; }
+  }
+
+  .info-key {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-11);
+    width: 90px;
+    flex-shrink: 0;
+  }
+
+  .info-val {
+    color: var(--color-text-tertiary);
+    font-size: var(--font-size-11);
+    word-break: break-all;
+    flex: 1;
+  }
+
+  /* K8s label chip */
+  .label-tag {
+    font-size: var(--font-size-xxs);
+    color: var(--color-text-tertiary);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-strong);
+    border-radius: 4px;
+    padding: 2px 7px;
+    white-space: nowrap;
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Panel/sidebar header bar */
+  .panel-header {
+    @apply flex items-center justify-between shrink-0;
+    padding: 14px 16px 12px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  /* Icon close button */
+  .close-btn {
+    @apply w-6 h-6 flex items-center justify-center rounded transition-colors duration-150;
+    color: var(--color-text-muted);
+
+    &:hover {
+      background: var(--color-border);
+      color: var(--color-text-primary);
+    }
+  }
+
+  /* Loading spinners */
+  .spinner {
+    @apply rounded-full shrink-0;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--color-border-strong);
+    border-top-color: var(--color-primary);
+    animation: var(--animate-spin-fast);
+  }
+
+  .spinner-sm {
+    @apply rounded-full shrink-0;
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--color-border-strong);
+    border-top-color: var(--color-primary);
+    animation: var(--animate-spin-fast);
+  }
 }
